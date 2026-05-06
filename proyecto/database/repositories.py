@@ -1,60 +1,140 @@
-from ..models.entities import Periodo, Transaccion, MetaAhorro
+from ..models.entities import Periodo, Transaccion, MetaAhorro, PlantillaRecurrente
+from .utils import QueryBuilder
 
+class PlantillaRepository:
+    def __init__(self, db_manager):
+        self.db = db_manager
+        self.table = "plantillas_recurrentes"
+
+    def add(self, plantilla: PlantillaRecurrente):
+        data = {
+            "nombre": plantilla.nombre,
+            "tipo": plantilla.tipo,
+            "activo": 1 if plantilla.activo else 0
+        }
+        sql, values = QueryBuilder.insert(self.table, data)
+        self.db.cursor.execute(sql, values)
+        self.db.connection.commit()
+        plantilla.id = self.db.cursor.lastrowid
+        return plantilla
+
+    def update(self, plantilla: PlantillaRecurrente):
+        data = {
+            "nombre": plantilla.nombre,
+            "tipo": plantilla.tipo,
+            "activo": 1 if plantilla.activo else 0
+        }
+        sql, values = QueryBuilder.update(self.table, data, {"id": plantilla.id})
+        self.db.cursor.execute(sql, values)
+        self.db.connection.commit()
+
+    def get_active(self):
+        sql, values = QueryBuilder.select(self.table, where={"activo": 1})
+        self.db.cursor.execute(sql, values)
+        rows = self.db.cursor.fetchall()
+        return [PlantillaRecurrente(id=r['id'], nombre=r['nombre'], tipo=r['tipo'], activo=bool(r['activo'])) for r in rows]
+
+    def find_by_id(self, id):
+        sql, values = QueryBuilder.select(self.table, where={"id": id})
+        self.db.cursor.execute(sql, values)
+        row = self.db.cursor.fetchone()
+        if row:
+            return PlantillaRecurrente(id=row['id'], nombre=row['nombre'], tipo=row['tipo'], activo=bool(row['activo']))
+        return None
+
+    def delete_physical(self, id):
+        sql, values = QueryBuilder.delete(self.table, where={"id": id})
+        self.db.cursor.execute(sql, values)
+        self.db.connection.commit()
+
+    def count_usages(self, plantilla_id):
+        sql = "SELECT COUNT(*) as count FROM transacciones WHERE plantilla_id = ?"
+        self.db.cursor.execute(sql, (plantilla_id,))
+        row = self.db.cursor.fetchone()
+        return row['count'] if row else 0
 class PeriodoRepository:
     def __init__(self, db_manager):
         self.db = db_manager
+        self.table = "periodos"
+
+    def find(self, mes, año):
+        sql, values = QueryBuilder.select(self.table, where={"mes": mes, "año": año})
+        self.db.cursor.execute(sql, values)
+        row = self.db.cursor.fetchone()
+        if row:
+            return Periodo(id=row['id'], mes=row['mes'], año=row['año'])
+        return None
 
     def get_or_create(self, mes, año):
-        self.db.cursor.execute(
-            "SELECT id, mes, año FROM periodos WHERE mes = ? AND año = ?",
-            (mes, año)
-        )
+        sql, values = QueryBuilder.select(self.table, where={"mes": mes, "año": año})
+        self.db.cursor.execute(sql, values)
         row = self.db.cursor.fetchone()
         if row:
             return Periodo(id=row['id'], mes=row['mes'], año=row['año'])
         
-        self.db.cursor.execute(
-            "INSERT INTO periodos (mes, año) VALUES (?, ?)",
-            (mes, año)
-        )
+        data = {"mes": mes, "año": año}
+        sql, values = QueryBuilder.insert(self.table, data)
+        self.db.cursor.execute(sql, values)
         self.db.connection.commit()
         return Periodo(id=self.db.cursor.lastrowid, mes=mes, año=año)
 
     def list_all(self):
-        self.db.cursor.execute("SELECT id, mes, año FROM periodos ORDER BY año DESC, mes DESC")
+        sql, values = QueryBuilder.select(self.table, order_by="año DESC, mes DESC")
+        self.db.cursor.execute(sql, values)
         rows = self.db.cursor.fetchall()
         return [Periodo(id=r['id'], mes=r['mes'], año=r['año']) for r in rows]
 
 class TransaccionRepository:
     def __init__(self, db_manager):
         self.db = db_manager
+        self.table = "transacciones"
 
     def add(self, transaccion: Transaccion):
-        self.db.cursor.execute(
-            """INSERT INTO transacciones (periodo_id, tipo, monto, descripcion, fecha)
-               VALUES (?, ?, ?, ?, ?)""",
-            (transaccion.periodo_id, transaccion.tipo, transaccion.monto, transaccion.descripcion, transaccion.fecha)
-        )
+        data = {
+            "periodo_id": transaccion.periodo_id,
+            "plantilla_id": transaccion.plantilla_id,
+            "nombre": transaccion.nombre,
+            "tipo": transaccion.tipo,
+            "monto": transaccion.monto
+        }
+        sql, values = QueryBuilder.insert(self.table, data)
+        self.db.cursor.execute(sql, values)
         self.db.connection.commit()
         transaccion.id = self.db.cursor.lastrowid
         return transaccion
 
     def delete(self, transaccion_id):
-        self.db.cursor.execute("DELETE FROM transacciones WHERE id = ?", (transaccion_id,))
+        sql, values = QueryBuilder.delete(self.table, where={"id": transaccion_id})
+        self.db.cursor.execute(sql, values)
         self.db.connection.commit()
 
     def list_by_periodo(self, periodo_id):
-        self.db.cursor.execute(
-            "SELECT id, periodo_id, tipo, monto, descripcion, fecha FROM transacciones WHERE periodo_id = ?",
-            (periodo_id,)
-        )
+        sql, values = QueryBuilder.select(self.table, where={"periodo_id": periodo_id})
+        self.db.cursor.execute(sql, values)
         rows = self.db.cursor.fetchall()
-        return [Transaccion(**dict(r)) for r in rows]
+        return [Transaccion(
+            id=r['id'],
+            periodo_id=r['periodo_id'],
+            plantilla_id=r['plantilla_id'],
+            nombre=r['nombre'],
+            tipo=r['tipo'],
+            monto=r['monto'],
+            fecha_creacion=r['fecha_creacion']
+        ) for r in rows]
 
     def get_all(self):
-        self.db.cursor.execute("SELECT id, periodo_id, tipo, monto, descripcion, fecha FROM transacciones")
+        sql, values = QueryBuilder.select(self.table)
+        self.db.cursor.execute(sql, values)
         rows = self.db.cursor.fetchall()
-        return [Transaccion(**dict(r)) for r in rows]
+        return [Transaccion(
+            id=r['id'],
+            periodo_id=r['periodo_id'],
+            plantilla_id=r['plantilla_id'],
+            nombre=r['nombre'],
+            tipo=r['tipo'],
+            monto=r['monto'],
+            fecha_creacion=r['fecha_creacion']
+        ) for r in rows]
 
 class ConfigRepository:
     def __init__(self, db_manager):

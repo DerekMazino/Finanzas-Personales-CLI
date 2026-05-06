@@ -5,17 +5,17 @@ Este proyecto es CLI de gestion de ingresos y gastos para finanzas personales. P
 
 ## Características principales
 - Listar periodos.
-- Agregar ingresos y gastos.
-- Eliminar ingresos y gastos.
-- Modificar ingresos y gastos.
-- Listar ingresos y gastos por periodo.
+- Agregar ingresos y egresos.
+- Eliminar ingresos y egresos.
+- Modificar ingresos y egresos.
+- Listar ingresos y egresos por periodo.
 - Crear periodo.
 - Eliminar periodo.
 - Modificar periodo.
 - Controlar ahorro.
 - Saldo del periodo.
 - Saldo total.
-- Gastos totales.
+- Egresos totales.
 - Ingresos totales.
 - Meta de ahorro.
 - Progreso hacia la meta.
@@ -23,17 +23,17 @@ Este proyecto es CLI de gestion de ingresos y gastos para finanzas personales. P
 ## Comportamiento del usuario
 - El usuario puede seleccionar un periodo.
 - El dashboard actualiza los datos mostrados en consecuencia.
-- El usuario puede agregar ingresos y gastos.
-- El usuario puede eliminar ingresos y gastos.
-- El usuario puede modificar ingresos y gastos.
-- El usuario puede listar ingresos y gastos por periodo.
+- El usuario puede agregar ingresos y egresos.
+- El usuario puede eliminar ingresos y egresos.
+- El usuario puede modificar ingresos y egresos.
+- El usuario puede listar ingresos y egresos por periodo.
 - El usuario puede crear periodo.
 - El usuario puede eliminar periodo.
 - El usuario puede modificar periodo.
 - El usuario puede controlar ahorro.
 - El usuario puede ver saldo del periodo.
 - El usuario puede ver saldo total.
-- El usuario puede ver gastos totales.
+- El usuario puede ver egresos totales.
 - El usuario puede ver ingresos totales.
 - El usuario puede ver meta de ahorro.
 - El usuario puede ver progreso hacia la meta.
@@ -51,7 +51,8 @@ Este proyecto es CLI de gestion de ingresos y gastos para finanzas personales. P
 
 ## Lógica de negocio
 - **Periodos**: Los periodos son estrictamente mensuales (Mes/Año). El sistema debe permitir la creación de periodos basados en el calendario.
-- **Ahorro Acumulado**: El sistema siempre debe calcular el ahorro del mes (Ingresos - Gastos) y el ahorro acumulado de todos los periodos. La Meta de Ahorro es opcional; si se define, se muestra el progreso hacia ella, de lo contrario, solo se muestran los totales ahorrados.
+- **Ahorro Acumulado**: El sistema siempre debe calcular el ahorro del mes (Ingresos - Egresos) y el ahorro acumulado de todos los periodos. La Meta de Ahorro es opcional; si se define, se muestra el progreso hacia ella, de lo contrario, solo se muestran los totales ahorrados.
+- **Recurrencia**: Los conceptos (Ingresos/Egresos) marcados como recurrentes deben ser creados automáticamente al generar un nuevo periodo, manteniendo su nombre y tipo, pero permitiendo que el valor sea ajustado individualmente en cada periodo.
 - **Flujo CLI**: El acceso principal será a través de comandos directos, donde el mes actual es el contexto por defecto para las operaciones de lectura y escritura.
 
 ## Objetivo de este proyecto

@@ -4,6 +4,7 @@ from rich.panel import Panel
 from rich.layout import Layout
 from rich.text import Text
 from rich.progress import ProgressBar
+from rich.prompt import Confirm
 
 console = Console()
 
@@ -13,7 +14,7 @@ class CLIInterface:
         # Panel superior: Mes actual
         periodo_str = monthly_summary['periodo']
         ingresos = monthly_summary['ingresos']
-        gastos = monthly_summary['gastos']
+        egresos = monthly_summary['egresos']
         balance = monthly_summary['balance']
 
         balance_color = "green" if balance >= 0 else "red"
@@ -21,9 +22,9 @@ class CLIInterface:
         month_panel = Panel(
             Text.assemble(
                 ("Ingresos: ", "bold"), (f"${ingresos:,.2f}\n", "green"),
-                ("Gastos:   ", "bold"), (f"${gastos:,.2f}\n", "red"),
-                ("-" * 20 + "\n"),
-                ("Balance:  ", "bold"), (f"${balance:,.2f}", f"bold {balance_color}")
+                ("Egresos:  ", "bold"), (f"${egresos:,.2f}\n", "red"),
+                ("-" * 25 + "\n"),
+                ("Balance:   ", "bold"), (f"${balance:,.2f}", f"bold {balance_color}")
             ),
             title=f"[bold blue]Resumen {periodo_str}[/bold blue]",
             expand=False
@@ -43,7 +44,6 @@ class CLIInterface:
                 ("Meta Global:           ", "bold"), (f"${meta:,.2f}\n", "yellow"),
                 ("Progreso:              ", "bold"), (f"{progreso:.1f}%\n" if progreso is not None else "0%\n", "bold yellow")
             ])
-            # Podríamos agregar una barra de progreso aquí
         
         savings_panel = Panel(
             Text.assemble(*savings_content),
@@ -56,21 +56,22 @@ class CLIInterface:
 
     @staticmethod
     def show_transactions(transacciones, title="Transacciones"):
-        table = Table(title=title)
+        table = Table(title=f"[bold blue]{title}[/]")
         table.add_column("ID", justify="right", style="dim")
-        table.add_column("Fecha")
-        table.add_column("Descripción")
+        table.add_column("Nombre/Concepto")
         table.add_column("Tipo")
         table.add_column("Monto", justify="right")
+        table.add_column("Fecha Registro", style="dim")
 
         for t in transacciones:
             color = "green" if t.tipo == 'ingreso' else "red"
+            fecha_str = t.fecha_creacion[:10] if t.fecha_creacion else "-"
             table.add_row(
                 str(t.id),
-                t.fecha,
-                t.descripcion,
+                t.nombre,
                 t.tipo.capitalize(),
-                f"[bold {color}]${t.monto:,.2f}[/bold {color}]"
+                f"[bold {color}]${t.monto:,.2f}[/bold {color}]",
+                fecha_str
             )
 
         console.print(table)
@@ -96,9 +97,14 @@ class CLIInterface:
         console.print(Panel(Text.assemble(*content), title="[bold cyan]Balance Global[/bold cyan]", expand=False))
 
     @staticmethod
-    def show_message(message, style="bold green"):
-        console.print(message, style=style)
+    def ask_confirmation(message):
+        """Pregunta al usuario una confirmación sí/no."""
+        return Confirm.ask(f"[bold yellow]{message}[/]")
+
+    @staticmethod
+    def show_message(message):
+        console.print(message)
 
     @staticmethod
     def show_error(message):
-        console.print(f"Error: {message}", style="bold red")
+        console.print(f"[bold red]Error:[/] {message}")

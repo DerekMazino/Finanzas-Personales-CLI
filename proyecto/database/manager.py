@@ -16,7 +16,7 @@ class DatabaseManager:
         self.cursor = None
 
     def _ensure_dir_exists(self):
-        if not os.path.exists(self.db_dir):
+        if self.db_path != ":memory:" and not os.path.exists(self.db_dir):
             os.makedirs(self.db_dir, exist_ok=True)
 
     def connect(self):
@@ -36,20 +36,33 @@ class DatabaseManager:
             )
         """)
 
-        # Tabla de Transacciones
+        # Tabla de Plantillas Recurrentes (Opción B)
+        self.cursor.execute("""
+            CREATE TABLE IF NOT EXISTS plantillas_recurrentes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                nombre TEXT NOT NULL,
+                tipo TEXT NOT NULL, -- 'ingreso' o 'egreso'
+                activo INTEGER DEFAULT 1 -- 1: Activo, 0: Inactivo
+            )
+        """)
+
+        # Tabla de Transacciones (Actualizada)
+        # Nota: plantilla_id es opcional para transacciones no recurrentes
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS transacciones (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 periodo_id INTEGER NOT NULL,
-                tipo TEXT NOT NULL, -- 'ingreso' o 'gasto'
+                plantilla_id INTEGER,
+                nombre TEXT NOT NULL,
+                tipo TEXT NOT NULL, -- 'ingreso' o 'egreso'
                 monto REAL NOT NULL,
-                descripcion TEXT NOT NULL,
-                fecha TEXT NOT NULL,
-                FOREIGN KEY (periodo_id) REFERENCES periodos (id)
+                fecha_creacion TEXT DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (periodo_id) REFERENCES periodos (id),
+                FOREIGN KEY (plantilla_id) REFERENCES plantillas_recurrentes (id)
             )
         """)
 
-        # Tabla de Configuración (para metas de ahorro, etc.)
+        # Tabla de Configuración
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS configuracion (
                 clave TEXT PRIMARY KEY,

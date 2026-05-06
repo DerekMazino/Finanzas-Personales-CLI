@@ -11,13 +11,21 @@ class Periodo:
         return f"{self.mes:02d}/{self.año}"
 
 @dataclass
+class PlantillaRecurrente:
+    id: Optional[int]
+    nombre: str
+    tipo: str # 'ingreso' o 'egreso'
+    activo: bool = True
+
+@dataclass
 class Transaccion:
     id: Optional[int]
     periodo_id: int
-    tipo: str # 'ingreso' o 'gasto'
+    nombre: str
+    tipo: str # 'ingreso' o 'egreso'
     monto: float
-    descripcion: str
-    fecha: str
+    plantilla_id: Optional[int] = None
+    fecha_creacion: Optional[str] = None
 
 @dataclass
 class MetaAhorro:

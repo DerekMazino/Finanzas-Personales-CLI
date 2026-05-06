@@ -21,7 +21,8 @@
 ## Manejo de datos
 - Base de Datos: SQLite usando sqlite3.
 - La base de datos se almacena en un archivo local en el directorio del usuario (~/.Finanzas_3/finanzas/finanzas.db).
-- Usar SQL para consultas.
+- **Query Builder**: No usar strings de SQL crudo directamente en los repositorios. Implementar o usar un Query Builder liviano para construir las consultas de forma programática.
+- **Modelo de Datos**: Utilizar un esquema relacional que separe las "Plantillas Recurrentes" de las "Transacciones" individuales para proteger el historial financiero.
 
 ## Control de alcance
 - No agregar funcionalidades extra más allá de la especificación.
@@ -29,3 +30,11 @@
 ## Comunicación
 - Generar código que sea fácil de entender para desarrolladores junior.
 - Agregar comentarios solo cuando sea necesario.
+
+## Instalación global (CLI)
+- El CLI debe ser instalable globalmente con pip.
+- El binario se debe poder ejecutar como "finanzas" desde la terminal.
+
+## Testing
+- El testing se realiza usando pytest.
+- Se debe generar código testeable.
