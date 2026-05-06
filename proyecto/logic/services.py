@@ -69,10 +69,21 @@ class FinanzasService:
         )
         return self.transacciones.add(nueva_t)
 
+    def actualizar_monto(self, transaccion_id, nuevo_monto):
+        """Actualiza el monto de una transacción existente."""
+        if nuevo_monto < 0:
+            raise ValueError("El monto no puede ser negativo.")
+        
+        t = self.transacciones.get_by_id(transaccion_id)
+        if not t:
+            raise ValueError(f"No existe la transacción con ID {transaccion_id}")
+            
+        t.monto = nuevo_monto
+        self.transacciones.update(t)
+        return t
+
     def eliminar_concepto(self, transaccion_id):
         """Eliminación inteligente: física si no hay historial, lógica si lo hay."""
-        # Por ahora, implementamos la eliminación de la transacción
-        # La lógica de la plantilla se maneja por separado si el usuario lo pide
         self.transacciones.delete(transaccion_id)
 
     def get_global_savings(self):

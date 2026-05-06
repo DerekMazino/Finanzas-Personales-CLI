@@ -45,6 +45,11 @@ def main():
     meta_parser = subparsers.add_parser("set-meta", help="Define la meta de ahorro global")
     meta_parser.add_argument("monto", type=float, help="Monto de la meta")
 
+    # Comando: edit
+    edit_parser = subparsers.add_parser("edit", help="Modifica el monto de un concepto por ID")
+    edit_parser.add_argument("id", type=int, help="ID de la transacción")
+    edit_parser.add_argument("monto", type=float, help="Nuevo monto")
+
     args = parser.parse_args()
 
     if args.command == "dashboard":
@@ -91,6 +96,13 @@ def main():
     elif args.command == "set-meta":
         service.config.set_meta(args.monto)
         ui.show_message(f"[bold green]OK[/] Meta de ahorro establecida en ${args.monto:,.2f}")
+
+    elif args.command == "edit":
+        try:
+            t = service.actualizar_monto(args.id, args.monto)
+            ui.show_message(f"[bold green]OK[/] Concepto {args.id} ('{t.nombre}') actualizado a ${args.monto:,.2f}")
+        except ValueError as e:
+            ui.show_error(str(e))
 
     else:
         parser.print_help()

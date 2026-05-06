@@ -57,6 +57,11 @@ Define tu objetivo de ahorro total.
 - **Uso**: `python main.py set-meta [monto]`
 - **Ejemplo**: `python main.py set-meta 20000`
 
+### `edit`
+Modifica el monto de un concepto ya registrado.
+- **Uso**: `python main.py edit [ID] [nuevo_monto]`
+- **Ejemplo**: `python main.py edit 2 1500000`
+
 ### `balance`
 Muestra rápidamente tu saldo acumulado histórico sin entrar al dashboard completo.
 - **Uso**: `python main.py balance`
